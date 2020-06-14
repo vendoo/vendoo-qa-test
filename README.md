@@ -1,30 +1,25 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/zeit/next.js/tree/canary/packages/create-next-app).
+# Vendoo QA Engineer Test
+Welcome to the Vendoo QA Engineer test project. This project is a testing ground for QA engineers to demonstrate their knowledge of automated testing with end-to-end test with Cypress (end-to-end). The project has been created to mimic Vendoo's real web application project.
 
-## Getting Started
+## Installation steps
+In order to get this project running on your local machine please do the following:
 
-First, run the development server:
+1. Install node v10 https://nodejs.org/en/download/
+2. Run `npm install` at the root folder
+3. Run `npm start` to start the local version of the application
+4. Ren `npm run e2e` to start the end to end testing
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+## QA Engineer Test
+The following 5 tasks are the features we need tested. Each task has a brief explanation of what we required. If you need more explanation or have any question feel free to email chris@vendoo.co
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You are not required to finish all 5 tasks, we rather see one very strong test versus 5 fragile test. You have a total of 20 hours to complete as many tests as possible.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### Task 1) Test Registeration
 
-## Learn More
+### Task 2) Test Login
 
-To learn more about Next.js, take a look at the following resources:
+### Task 3) Submitting form
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Task 4) Test filtering inventory
 
-You can check out [the Next.js GitHub repository](https://github.com/zeit/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on ZEIT Now
-
-The easiest way to deploy your Next.js app is to use the [ZEIT Now Platform](https://zeit.co/import?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+### Task 5) Test listing 
