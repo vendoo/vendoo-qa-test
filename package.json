@@ -5,9 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "serve": "next start",
+    "start": "npm run dev",
+    "e2e": "cypress open",
+    "e2e:run": "cypress run"
   },
   "dependencies": {
+    "cypress": "^4.8.0",
     "firebase": "^7.15.1",
     "next": "9.4.4",
     "react": "16.13.1",
