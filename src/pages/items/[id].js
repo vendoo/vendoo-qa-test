@@ -3,11 +3,16 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
+import withAppTemplate from "../../templates/withApp";
+
 // Components
 import ItemForm from "../../components/items/itemForm";
+import Firebase from "../../firebase/app";
+import { useUser } from "../../context/user";
 
 const EditItem = ({}) => {
   const router = useRouter();
+  const user = useUser();
   const { id } = router.query;
   const [pageState, setPageState] = useState({ status: "idle" });
   const [initValues, setinitValues] = useState({
@@ -19,20 +24,23 @@ const EditItem = ({}) => {
 
   useEffect(() => {
     let mounted = true;
-    // Load item details here
-    setTimeout(() => {
-      if (mounted) {
-        setinitValues({
-          photos: [],
-          title: "",
-          description: "",
-          price: "",
+    // Load inventory details here
+    if (user.status === "loading") return;
+    if(!id) return;
+    if (user.uid) {
+      Firebase.firestore
+        .doc(`users/${user.uid}/items/${id}`)
+        .get()
+        .then((snap) => {
+          if (!mounted) return;
+          setinitValues(snap.data());
+          setPageState({ status: "loaded" });
         });
-        setPageState({ status: "loaded" });
-      }
-    }, 2000);
+    } else {
+      setPageState({ status: "error" });
+    }
     return () => (mounted = false);
-  }, []);
+  }, [user.uid, user.status, id]);
 
   return (
     <div>
@@ -45,8 +53,13 @@ const EditItem = ({}) => {
         <ItemForm
           formType="edit"
           initValues={initValues}
-          handleSubmit={(formValues) => {
-            console.log(formValues);
+          handleSubmit={async (formValues) => {
+            await Firebase.actions.updateItem(id, {
+              photos: formValues.photos,
+              title: formValues.title,
+              price: formValues.price,
+              description: formValues.description,
+            });
           }}
         />
       )}
@@ -54,4 +67,4 @@ const EditItem = ({}) => {
   );
 };
 
-export default EditItem;
+export default withAppTemplate(EditItem);

@@ -1,8 +1,10 @@
+import UserProvider from "../context/user/provider";
+
 function MyApp({ Component, pageProps }) {
   return (
-    <div>
+    <UserProvider>
       <Component {...pageProps} />
-    </div>
+    </UserProvider>
   );
 }
 

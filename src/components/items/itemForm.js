@@ -1,7 +1,12 @@
 // Libs
 import React, { useState } from "react";
+import Firebase from "../../firebase/app";
+import { useUser } from "../../context/user";
 
 const ItemForm = ({ handleSubmit, formType, initValues }) => {
+  const user = useUser();
+  const [formState, setFormState] = useState({ status: "idle" });
+
   const [formValues, setFormValues] = useState(
     () =>
       initValues || {
@@ -16,43 +21,60 @@ const ItemForm = ({ handleSubmit, formType, initValues }) => {
   const handleOnChange = (value) => (evt) =>
     setFormValues({ ...formValues, [value]: evt.currentTarget.value });
 
-  const handleOnFileChange = (evt) => {
-    console.log();
+  const handleOnFileChange = async (evt) => {
+    if (!user.uid) return;
     const file = evt.currentTarget.files[0];
     if (formValues.photos.length + 1 > 8) return;
     setFileUploader({ status: "uploading" });
 
     // Upload to storage here
-    setTimeout(() => {
-      setFileUploader({ status: "idle" });
-    }, 3000);
+    const uniqueId = `static-${Date.now()}`;
+    const extension = file.type.split("/").pop();
+
+    const res = await Firebase.storage
+      .ref(`images/${user.uid}/${uniqueId}.${extension}`)
+      .put(file);
+    const url = await res.ref.getDownloadURL();
+    const newPhotos = [...formValues.photos, url];
+    setFormValues({
+      ...formValues,
+      photos: newPhotos,
+    });
+    setFileUploader({ status: "idle" });
   };
 
   return (
     <form
-      onSubmit={(evt) => {
+      onSubmit={async (evt) => {
         evt.preventDefault();
-        handleSubmit(formValues);
+        setFormState({ status: "submitting" });
+        await handleSubmit(formValues);
+        setFormState({ status: "idle" });
       }}
     >
+      <div>
+        <div>
+          <label>Photos ({formValues.photos.length})</label>
+        </div>
+        {formValues.photos.map((url) => (
+          <div
+            key={url}
+            style={{
+              display: "inline-block",
+              width: 100,
+              height: 100,
+              background: `url(${url})`,
+              backgroundSize: "contain",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center",
+              border: "1px solid gray",
+            }}
+          />
+        ))}
+      </div>
       {fileUploader.status === "idle" && (
         <div style={{ marginBottom: 10 }}>
-          <label>Photos ({formValues.photos.length})</label>
-          {formValues.photos.map((url) => (
-            <div
-              key={url}
-              style={{
-                width: 100,
-                height: 100,
-                background: `url(${url})`,
-                backgroundSize: "cover",
-                border: "1px solid gray",
-              }}
-            />
-          ))}
-          <div>
-            <input type="file" onChange={handleOnFileChange} />
-          </div>
+          <input type="file" onChange={handleOnFileChange} />
         </div>
       )}
       {fileUploader.status === "uploading" && <div>Uploading Photo...</div>}
@@ -82,7 +104,10 @@ const ItemForm = ({ handleSubmit, formType, initValues }) => {
           value={formValues.price}
         />
       </div>
-      <button>{formType === "edit" ? "Save" : "Create"}</button>
+      {formState.status === "idle" && (
+        <button>{formType === "edit" ? "Save" : "Create"}</button>
+      )}
+      {formState.status === "submitting" && <div>Submitting...</div>}
     </form>
   );
 };

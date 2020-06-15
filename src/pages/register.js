@@ -1,6 +1,9 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useState } from "react";
+
+import Firebase from "../firebase/app";
 
 const securityQuestions = [
   { q: "1 + 4 = ?", a: 5 },
@@ -10,6 +13,8 @@ const securityQuestions = [
 ];
 
 export default function Login() {
+  const router = useRouter();
+  const [formState, setFormState] = useState({ status: "idle" });
   const [formError, setFormError] = useState("");
   const [formValues, setFormValues] = useState({
     email: "",
@@ -21,18 +26,43 @@ export default function Login() {
       Math.floor(Math.random() * securityQuestions.length)
     ];
   });
-  const handleSubmit = (evt) => {
-    console.log(typeof formValues.security);
-    if (formValues.security !== String(securityQuestion.a)) {
+  const handleSubmit = async (evt) => {
+    evt.preventDefault();
+    const { security, email, password } = formValues;
+    if (security !== String(securityQuestion.a)) {
       setFormError("Incorrect Security Answer");
-    } else if (!formValues.email) {
+    } else if (!email) {
       setFormError("Missing Email");
-    } else if (!formValues.password) {
+    } else if (!password) {
       setFormError("Missing Password");
     } else {
       setFormError("");
     }
-    evt.preventDefault();
+    setFormState({ status: "submitting" });
+    let uid;
+    try {
+      const res = await Firebase.actions.register(email, password);
+      uid = res.user.uid;
+    } catch (error) {
+      setFormError(
+        error.message
+          ? error.message
+          : "An submit error occured. Please try again."
+      );
+      setFormState({ status: "idle" });
+      return;
+    }
+    try {
+      if (!uid) throw new Error("Missing UID");
+      await Firebase.firestore.doc("users/" + uid).set({ email });
+    } catch (error) {
+      console.log(error.message ? error.message : error);
+      setFormError("Failed creating your account");
+      setFormState({ status: "idle" });
+      return;
+    }
+    // Go to inventory
+    router.push("/inventory");
   };
   const handleOnChange = (value) => (evt) =>
     setFormValues({ ...formValues, [value]: evt.currentTarget.value });
@@ -80,7 +110,8 @@ export default function Login() {
           {formError && (
             <div style={{ color: "red" }}>FORM ERROR: {formError}</div>
           )}
-          <button>Register</button>
+          {formState.status === "idle" && <button>Register</button>}
+          {formState.status === "submitting" && <div>Submitting...</div>}
         </form>
         <div>
           <strong>Need to have an account?</strong>

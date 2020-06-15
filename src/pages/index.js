@@ -1,13 +1,40 @@
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import { useState } from "react";
 
+import Firebase from "../firebase/app";
+
 export default function Login() {
+  const router = useRouter();
+  const [formError, setFormError] = useState("");
+  const [formState, setFormState] = useState({ status: "idle" });
   const [formValues, setFormValues] = useState({ email: "", password: "" });
-  const handleSubmit = (evt) => {
+  const handleSubmit = async (evt) => {
     evt.preventDefault();
-    console.log(formValues);
+    const { email, password } = formValues;
+    if (!email) {
+      setFormError("Missing Email");
+    } else if (!password) {
+      setFormError("Missing Password");
+    } else {
+      setFormError("");
+    }
+    setFormState({ status: "submitting" });
+    try {
+      const res = await Firebase.auth.signInWithEmailAndPassword(
+        email,
+        password
+      );
+      if (res.user.uid) {
+        router.push("/inventory");
+      }
+    } catch (error) {
+      setFormError(error.message ? error.message : "An error occured");
+      setFormState({ status: "idle" });
+      return;
+    }
   };
   const handleOnChange = (value) => (evt) =>
     setFormValues({ ...formValues, [value]: evt.currentTarget.value });
@@ -37,7 +64,11 @@ export default function Login() {
               value={formValues.password}
             />
           </div>
-          <button>Login</button>
+          {formError && (
+            <div style={{ color: "red" }}>FORM ERROR: {formError}</div>
+          )}
+          {formState.status === "submitting" && <div>Submitting...</div>}
+          {formState.status === "idle" && <button>Login</button>}
         </form>
         <div>
           <strong>Need to Register?</strong>
